@@ -47,15 +47,15 @@ func makeCtxWithScaling(f tuhi.File) (*gg.Context, float64) {
 // Set pressure sensitivity attributes;
 // Line width depends on pressure and overall image scale.
 func setPressure(dc *gg.Context, pressure float64, scale float64) {
-	v := 1.0
 	// TODO: Opacity scales linearly for pressures below the threshold,
 	// and is fully opaque above.  (Not enabled because line drawing is shit)
 
+	// v := 1.0
 	// const threshold = 18000
 	// if pressure < threshold {
 	// 	v = pressure / threshold
 	// }
-	dc.SetRGBA(0, 0, 0, v)
+	//dc.SetRGBA(0, 0, 0, v)
 	dc.SetLineWidth(pressure * scale * 0.007)
 }
 
