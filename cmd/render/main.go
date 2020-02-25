@@ -26,22 +26,18 @@ var (
 
 // return ctx, scale
 func makeCtxWithScaling(f tuhi.File) (*gg.Context, float64) {
+	var r image.Rectangle
 	if *scaleToFit {
-		r := f.Bounds()
-
-		scale := *width / float64(r.Dx())
-		dc := gg.NewContext(int(float64(r.Dx())*scale), int(float64(r.Dy())*scale))
-		dc.Scale(scale, scale)
-		dc.Translate(-float64(r.Min.X), -float64(r.Min.Y))
-
-		return dc, scale
+		r = f.DrawingBounds()
 	} else {
-		w, h := f.Size()
-		scale := *width / float64(w)
-		dc := gg.NewContext(int(float64(w)*scale), int(float64(h)*scale))
-		dc.Scale(scale, scale)
-		return dc, scale
+		r = f.Bounds()
 	}
+
+	scale := *width / float64(r.Dx())
+	dc := gg.NewContext(int(float64(r.Dx())*scale), int(float64(r.Dy())*scale))
+	dc.Scale(scale, scale)
+	dc.Translate(-float64(r.Min.X), -float64(r.Min.Y))
+	return dc, scale
 }
 
 // Set pressure sensitivity attributes;

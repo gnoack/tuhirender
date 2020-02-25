@@ -26,11 +26,11 @@ type File struct {
 	Strokes    []Stroke
 }
 
-func (f File) Size() (int, int) {
-	return f.Dimensions[0], f.Dimensions[1]
+func (f File) Bounds() image.Rectangle {
+	return image.Rect(0, 0, f.Dimensions[0], f.Dimensions[1])
 }
 
-func (f File) Bounds() image.Rectangle {
+func (f File) DrawingBounds() image.Rectangle {
 	// Find min and max x and y values in all points.
 	minx := math.Inf(1)
 	miny := math.Inf(1)
