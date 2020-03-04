@@ -1,6 +1,6 @@
 // Package tuhi defines the Tuhi data format.
 //
-// The tuhi.File type can be
+// The tuhi.File type can be serialized and deserialized using the JSON module.
 package tuhi
 
 import (
@@ -8,6 +8,7 @@ import (
 	"math"
 )
 
+// TODO: Implement UnmarshalJSON so fields can be named X and Y.
 type Point struct {
 	Position []int
 	Pressure float64
