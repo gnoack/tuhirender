@@ -14,7 +14,7 @@ import (
 )
 
 func ggPt(pt tuhi.Point) (float64, float64) {
-	return float64(pt.Position[0]), float64(pt.Position[1])
+	return float64(pt.Position.X), float64(pt.Position.Y)
 }
 
 var (

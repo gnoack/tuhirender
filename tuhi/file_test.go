@@ -2,6 +2,7 @@ package tuhi_test
 
 import (
 	"encoding/json"
+	"image"
 	"reflect"
 	"testing"
 
@@ -20,8 +21,8 @@ func TestRoundtripMarshal(t *testing.T) {
 		Dimensions: []int{5000, 6000},
 		Timestamp:  1583349599,
 		Strokes: []tuhi.Stroke{
-			{[]tuhi.Point{{[]int{10, 20}, 62000}}},
-			{[]tuhi.Point{{[]int{15, 30}, 62000}}},
+			{[]tuhi.Point{{image.Pt(10, 20), 62000}}},
+			{[]tuhi.Point{{image.Pt(15, 30), 62000}}},
 		},
 	}
 

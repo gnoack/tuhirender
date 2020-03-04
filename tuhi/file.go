@@ -4,14 +4,45 @@
 package tuhi
 
 import (
+	"encoding/json"
+	"errors"
 	"image"
 	"math"
 )
 
 // TODO: Implement UnmarshalJSON so fields can be named X and Y.
 type Point struct {
+	Position image.Point
+	Pressure float64
+}
+
+type jsonPoint struct {
 	Position []int
 	Pressure float64
+}
+
+func (p Point) MarshalJSON() ([]byte, error) {
+	jp := jsonPoint{
+		Position: []int{p.Position.X, p.Position.Y},
+		Pressure: p.Pressure,
+	}
+	return json.Marshal(jp)
+
+}
+
+func (p *Point) UnmarshalJSON(b []byte) error {
+	var jp jsonPoint
+	if err := json.Unmarshal(b, &jp); err != nil {
+		return err
+	}
+
+	if len(jp.Position) != 2 {
+		return errors.New("Wrong number of ints in point")
+	}
+
+	p.Position = image.Pt(jp.Position[0], jp.Position[1])
+	p.Pressure = jp.Pressure
+	return nil
 }
 
 type Stroke struct {
@@ -40,10 +71,10 @@ func (f File) DrawingBounds() image.Rectangle {
 
 	for _, s := range f.Strokes {
 		for _, p := range s.Points {
-			minx = math.Min(minx, float64(p.Position[0]))
-			miny = math.Min(miny, float64(p.Position[1]))
-			maxx = math.Max(maxx, float64(p.Position[0]))
-			maxy = math.Max(maxy, float64(p.Position[1]))
+			minx = math.Min(minx, float64(p.Position.X))
+			miny = math.Min(miny, float64(p.Position.Y))
+			maxx = math.Max(maxx, float64(p.Position.X))
+			maxy = math.Max(maxy, float64(p.Position.Y))
 		}
 	}
 
