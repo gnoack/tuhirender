@@ -4,25 +4,36 @@ import (
 	"encoding/json"
 	"flag"
 	"image"
+	"image/color"
 	"io/ioutil"
 	"log"
 	"os"
 
 	"github.com/fogleman/gg"
+	"github.com/gnoack/path"
 	"github.com/gnoack/wacomrender/imgwriter"
 	"github.com/gnoack/wacomrender/tuhi"
 )
 
+var (
+	outfile      = flag.String("o", "out.png", "output file")
+	width        = flag.Float64("width", 800.0, "image width to scale to")
+	scaleToFit   = flag.Bool("fit", false, "scale image to fit?")
+	format       = flag.String("format", "png", "output format")
+	cycleColors  = flag.Bool("debug", false, "cycle colors for debugging")
+	fixup        = flag.Bool("fixup", false, "fix up")
+	fixupEpsilon = flag.Float64("fixup.epsilon", 50, "epsilon for fixup algorithm")
+)
+
+var colors = []color.Color{
+	color.RGBA{255, 0, 0, 255},
+	color.RGBA{0, 255, 0, 255},
+	color.RGBA{0, 0, 255, 255},
+}
+
 func ggPt(pt tuhi.Point) (float64, float64) {
 	return float64(pt.Position.X), float64(pt.Position.Y)
 }
-
-var (
-	outfile    = flag.String("o", "out.png", "output file")
-	width      = flag.Float64("width", 800.0, "image width to scale to")
-	scaleToFit = flag.Bool("fit", false, "scale image to fit?")
-	format     = flag.String("format", "png", "output format")
-)
 
 // return ctx, scale
 func makeCtxWithScaling(f tuhi.File) (*gg.Context, float64) {
@@ -34,7 +45,10 @@ func makeCtxWithScaling(f tuhi.File) (*gg.Context, float64) {
 	}
 
 	scale := *width / float64(r.Dx())
-	dc := gg.NewContext(int(float64(r.Dx())*scale), int(float64(r.Dy())*scale))
+	dc := gg.NewContext(
+		int(float64(r.Dx())*scale),
+		int(float64(r.Dy())*scale),
+	)
 	dc.Scale(scale, scale)
 	dc.Translate(-float64(r.Min.X), -float64(r.Min.Y))
 	return dc, scale
@@ -67,6 +81,28 @@ func newWriter(img image.Image) imgwriter.W {
 	}
 }
 
+func simplifyStroke(s tuhi.Stroke) tuhi.Stroke {
+	epsilon := *fixupEpsilon * *fixupEpsilon
+	f := func(i int) (x, y int) {
+		pos := s.Points[i].Position
+		return pos.X, pos.Y
+	}
+	indices := path.Simplify(path.OfIntPoints(f, len(s.Points)), epsilon)
+	var out []tuhi.Point
+	for _, i := range indices {
+		out = append(out, s.Points[i])
+	}
+	return tuhi.Stroke{Points: out}
+}
+
+func simplifyStrokes(strokes []tuhi.Stroke) []tuhi.Stroke {
+	var out []tuhi.Stroke
+	for _, s := range strokes {
+		out = append(out, simplifyStroke(s))
+	}
+	return out
+}
+
 func main() {
 	flag.Parse()
 
@@ -87,9 +123,17 @@ func main() {
 
 	imgw := newWriter(dc.Image())
 
+	if *fixup {
+		f.Strokes = simplifyStrokes(f.Strokes)
+	}
+
 	for _, stroke := range f.Strokes {
 		prev := stroke.Points[0]
-		for _, pt := range stroke.Points[1:] {
+		for idx, pt := range stroke.Points[1:] {
+			if *cycleColors {
+				// A new color for each path segment.
+				dc.SetColor(colors[idx%len(colors)])
+			}
 			setPressure(dc, pt.Pressure, scale)
 			dc.MoveTo(ggPt(prev))
 			dc.LineTo(ggPt(pt))
