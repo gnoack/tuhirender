@@ -16,13 +16,14 @@ import (
 )
 
 var (
-	outfile      = flag.String("o", "out.png", "output file")
-	width        = flag.Float64("width", 800.0, "image width to scale to")
-	scaleToFit   = flag.Bool("fit", false, "scale image to fit?")
-	format       = flag.String("format", "png", "output format")
-	cycleColors  = flag.Bool("debug", false, "cycle colors for debugging")
-	fixup        = flag.Bool("fixup", false, "fix up")
-	fixupEpsilon = flag.Float64("fixup.epsilon", 50, "epsilon for fixup algorithm")
+	outfile       = flag.String("o", "out.png", "output file")
+	width         = flag.Float64("width", 800.0, "image width to scale to")
+	scaleToFit    = flag.Bool("fit", false, "scale image to fit?")
+	format        = flag.String("format", "png", "output format")
+	cycleColors   = flag.Bool("debug", false, "cycle colors for debugging")
+	fixedPressure = flag.Float64("fixed-pressure", -1.0, "to set a fixed pen pressure")
+	fixup         = flag.Bool("fixup", false, "fix up")
+	fixupEpsilon  = flag.Float64("fixup.epsilon", 50, "epsilon for fixup algorithm")
 )
 
 var colors = []color.Color{
@@ -60,6 +61,9 @@ func setPressure(dc *gg.Context, pressure float64, scale float64) {
 	// TODO: Opacity scales linearly for pressures below the threshold,
 	// and is fully opaque above.  (Not enabled because line drawing is shit)
 
+	if *fixedPressure > 0.0 {
+		pressure = *fixedPressure * 65000
+	}
 	// v := 1.0
 	// const threshold = 18000
 	// if pressure < threshold {
