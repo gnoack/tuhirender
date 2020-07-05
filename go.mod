@@ -1,4 +1,4 @@
-module github.com/gnoack/wacomrender
+module github.com/gnoack/tuhirender
 
 go 1.13
 

@@ -12,8 +12,8 @@ import (
 
 	"github.com/fogleman/gg"
 	"github.com/gnoack/path"
-	"github.com/gnoack/wacomrender/imgwriter"
-	"github.com/gnoack/wacomrender/tuhi"
+	"github.com/gnoack/tuhirender/imgwriter"
+	"github.com/gnoack/tuhirender/tuhi"
 )
 
 var (

@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/gnoack/wacomrender/tuhi"
+	"github.com/gnoack/tuhirender/tuhi"
 )
 
 func eq(a, b tuhi.File) bool {
