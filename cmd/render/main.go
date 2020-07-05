@@ -16,14 +16,16 @@ import (
 )
 
 var (
-	outfile       = flag.String("o", "out.png", "output file")
-	width         = flag.Float64("width", 800.0, "image width to scale to")
-	scaleToFit    = flag.Bool("fit", false, "scale image to fit?")
-	format        = flag.String("format", "png", "output format")
-	cycleColors   = flag.Bool("debug", false, "cycle colors for debugging")
-	fixedPressure = flag.Float64("fixed-pressure", -1.0, "to set a fixed pen pressure")
-	fixup         = flag.Bool("fixup", false, "fix up")
-	fixupEpsilon  = flag.Float64("fixup.epsilon", 50, "epsilon for fixup algorithm")
+	outfile         = flag.String("o", "out.png", "output file")
+	width           = flag.Float64("width", 800.0, "image width to scale to")
+	scaleToFit      = flag.Bool("fit", false, "scale image to fit?")
+	border          = flag.Float64("border", 10.0, "border pixels in target image")
+	format          = flag.String("format", "png", "output format")
+	cycleColors     = flag.Bool("debug", false, "cycle colors for debugging")
+	fixedPressure   = flag.Float64("fixed-pressure", -1.0, "to set a fixed pen pressure")
+	scalePressure   = flag.Float64("scale-pressure", 1.0, "to set a scaling factor for pen pressure")
+	simplify        = flag.Bool("simplify", false, "simplify strokes")
+	simplifyEpsilon = flag.Float64("simplify.epsilon", 50, "epsilon for simplification algorithm")
 )
 
 var colors = []color.Color{
@@ -44,8 +46,9 @@ func makeCtxWithScaling(f tuhi.File) (*gg.Context, float64) {
 	} else {
 		r = f.Bounds()
 	}
-
 	scale := *width / float64(r.Dx())
+	r = r.Inset(-int(*border / scale))
+
 	dc := gg.NewContext(
 		int(float64(r.Dx())*scale),
 		int(float64(r.Dy())*scale),
@@ -61,6 +64,7 @@ func setPressure(dc *gg.Context, pressure float64, scale float64) {
 	// TODO: Opacity scales linearly for pressures below the threshold,
 	// and is fully opaque above.  (Not enabled because line drawing is shit)
 
+	pressure = *scalePressure * pressure
 	if *fixedPressure > 0.0 {
 		pressure = *fixedPressure * 65000
 	}
@@ -86,7 +90,7 @@ func newWriter(img image.Image) imgwriter.W {
 }
 
 func simplifyStroke(s tuhi.Stroke) tuhi.Stroke {
-	epsilon := *fixupEpsilon * *fixupEpsilon
+	epsilon := *simplifyEpsilon * *simplifyEpsilon
 	f := func(i int) (x, y int) {
 		pos := s.Points[i].Position
 		return pos.X, pos.Y
@@ -127,7 +131,7 @@ func main() {
 
 	imgw := newWriter(dc.Image())
 
-	if *fixup {
+	if *simplify {
 		f.Strokes = simplifyStrokes(f.Strokes)
 	}
 
