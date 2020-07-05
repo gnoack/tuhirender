@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"image"
 	"image/color"
 	"io/ioutil"
@@ -112,6 +113,7 @@ func simplifyStrokes(strokes []tuhi.Stroke) []tuhi.Stroke {
 }
 
 func main() {
+	flag.Usage = usage
 	flag.Parse()
 
 	var f tuhi.File
@@ -162,4 +164,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not write output file: %v", err)
 	}
+}
+
+func usage() {
+	fmt.Fprintf(flag.CommandLine.Output(), `Usage:
+  %s -o out.png [FLAGS] < input/1593622406.json
+
+Parameters:
+`, os.Args[0])
+	flag.PrintDefaults()
 }
