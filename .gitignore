@@ -4,3 +4,7 @@ out
 *~
 main
 render.sh
+*.png
+*.git
+*.gif
+examples
